@@ -1,0 +1,82 @@
+﻿@page "/post/{id}"
+
+@using kreddit_app.Data
+@using ThreadModel = shared.Model.Thread
+@inject ApiService apiService
+
+<PageTitle>Kreddit</PageTitle>
+
+<style>
+    div.contents {
+        background-color: #f2f0eb;
+        width: 600px;
+        border: 2px solid #452d3d;
+        padding: 10px;
+        margin-top: 20px;
+    }
+</style>
+
+@if (Thread == null)
+{
+<p><em>Loading...</em></p>
+}
+else
+{
+<div class="contents">
+    <h4>@Thread.Title</h4>
+    <p><strong>Author: @Thread.AuthorName, Score: @Thread.Score</strong></p>
+    <p>@(string.IsNullOrWhiteSpace(Thread.Text) ? Thread.Url : Thread.Text)</p>
+    <button @onclick="() => UpvoteThread(Thread.Id)">Upvote</button>
+    <button @onclick="() => DownvoteThread(Thread.Id)">Downvote</button>
+</div>
+
+<div class="contents">
+    <h4>Comments</h4>
+    <table>
+        <tr>
+            <th>Author</th>
+            <th>Comment</th>
+            <th>Score</th>
+        </tr>
+        @if (Thread.Comments != null)
+        {
+        @foreach (var comment in Thread.Comments)
+        {
+        <tr>
+            <td>@comment.AuthorName</td>
+            <td>@comment.Text</td>
+            <td>@comment.Score</td>
+        </tr>
+        }
+        }
+    </table>
+</div>
+
+<CreateComment ThreadId="@ThreadId"></CreateComment>
+}
+
+@code {
+[Parameter]
+public string Id { get; set; } = string.Empty;
+
+public int ThreadId => int.Parse(Id);
+
+public ThreadModel? Thread { get; set; }
+
+protected override async Task OnInitializedAsync()
+{
+Thread = await apiService.GetThread(ThreadId);
+}
+
+private async Task UpvoteThread(int id)
+{
+var newScore = await apiService.UpvoteThread(id, "Guest");
+if (Thread is not null) Thread.Score = newScore;
+}
+
+private async Task DownvoteThread(int id)
+{
+var newScore = await apiService.DownvoteThread(id, "Guest");
+if (Thread is not null) Thread.Score = newScore;
+}
+}

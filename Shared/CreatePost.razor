@@ -1,0 +1,28 @@
+@using kreddit_app.Data
+@inject ApiService apiService
+@inject NavigationManager Nav
+
+<div>
+    <br/>
+    <h3>Create a new Post</h3>
+    <input placeholder="Title" type="text" id="postTitle" @bind="postTitle" />
+    <input placeholder="Content" type="text" id="postContent" @bind="postContent" />
+    <button id="createPostButton" type="button" @onclick="CreateNewPost">Create Post</button>
+</div>
+
+@code {
+    private string? postTitle;
+    private string? postContent;
+
+    private async Task CreateNewPost()
+    {
+        if (string.IsNullOrWhiteSpace(postTitle) || string.IsNullOrWhiteSpace(postContent))
+        {
+            return;
+        }
+
+        await apiService.CreatePost(postTitle, postContent, 2);
+        StateHasChanged();
+        Nav.NavigateTo("/", true);
+    }
+}

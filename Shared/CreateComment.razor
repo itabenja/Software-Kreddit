@@ -1,0 +1,26 @@
+@using kreddit_app.Data
+@inject ApiService apiService
+
+<div>
+    <br/>
+    <h3>Write a comment</h3>
+    <input placeholder="Content" type="text" id="content" @bind="content" />
+    <button id="createPostButton" type="button" @onclick="CreateNewComment">Post comment</button>
+</div>
+
+@code {
+    [Parameter]
+    public int ThreadId { get; set; }
+
+    private string? content;
+
+    private async Task CreateNewComment()
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+        await apiService.CreateComment(ThreadId, content, "Guest");
+        content = string.Empty;
+    }
+}

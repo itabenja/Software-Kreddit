@@ -1,0 +1,60 @@
+﻿@inherits LayoutComponentBase
+@using kreddit_app
+@using kreddit_app.Data
+@using System.Linq
+@using ThreadModel = shared.Model.Thread
+@inject ApiService apiService
+
+@if (threads == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <CreatePost />
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Author</th>
+            <th>Score</th>
+            <th colspan="2">Votes</th>
+        </tr>
+        @foreach (var thread in threads)
+        {
+            <tr>
+                <td><a href="/post/@thread.Id">@thread.Title</a></td>
+                <td>@(string.IsNullOrWhiteSpace(thread.Text) ? thread.Url : thread.Text)</td>
+                <td>@thread.AuthorName</td>
+                <td>@thread.Score</td>
+                <td><button @onclick="() => Upvote(thread.Id)">Upvote</button></td>
+                <td><button @onclick="() => Downvote(thread.Id)">Downvote</button></td>
+            </tr>
+        }
+    </table>
+
+    <br/>
+}
+
+@code {
+    private ThreadModel[]? threads;
+
+    protected override async Task OnInitializedAsync()
+    {
+        threads = await apiService.GetThreads();
+    }
+
+    private async Task Upvote(int id)
+    {
+        var newScore = await apiService.UpvoteThread(id, "Guest");
+        var t = threads?.FirstOrDefault(x => x.Id == id);
+        if (t is not null) t.Score = newScore;
+    }
+
+    private async Task Downvote(int id)
+    {
+        var newScore = await apiService.DownvoteThread(id, "Guest");
+        var t = threads?.FirstOrDefault(x => x.Id == id);
+        if (t is not null) t.Score = newScore;
+    }
+}
